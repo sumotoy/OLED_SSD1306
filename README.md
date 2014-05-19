@@ -1,6 +1,16 @@
 OLED_SSD1306
 ============
 
+ATTENTION!
+This library it's now using a modified version of Adafruit_GFX library https://github.com/sumotoy/Adafruit-GFX-Library
+That it's faster and almost 100& compatible with regular one (apart the new text rendering that support multiple fonts).
+If you plan to use the original Adafruit_GFX library you can still use it! Just uncomment this line in .cpp file of this library:
+
+//#include "glcdfont.c" //comment out if you are using the custom version of Adafruit_GFX!!!!!!!!!
+
+That's it.
+-------------------------------------------------------------------------------------------------------------------------
+
 Hyper Fast driver for SSD1306, only SPI, for Arduino and Teensy3
 
 It's just an experiment. It's a blazing fast version of the official Adafruit_SSD1306 Library but modified for work only in SPI
