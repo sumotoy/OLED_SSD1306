@@ -88,7 +88,7 @@ void OLED_SSD1306::begin(uint8_t switchvcc) {
 	_inited = false;
 	_vccstate = switchvcc;
 	commonInit();
-	chipInit(_vccstate);
+	if (_inited) chipInit(_vccstate);
 }
 
 void OLED_SSD1306::invertDisplay(uint8_t i) {
@@ -377,14 +377,16 @@ OLED_SSD1306::OLED_SSD1306(uint8_t cs, uint8_t rs, uint8_t rst) : Adafruit_GFX(O
     _cs = cs;
     _rs = rs;
     _rst = rst;
-	_sid  = _sclk = 0;
+	//_sid  = _sclk = 0;
+	_inited = false;
 }
 
 OLED_SSD1306::OLED_SSD1306(uint8_t cs, uint8_t rs) : Adafruit_GFX(OLED_WIDTH, OLED_HEIGHT) {
     _cs = cs;
     _rs = rs;
     _rst = 0;
-	_sid  = _sclk = 0;
+	//_sid  = _sclk = 0;
+	_inited = false;
 }
 
 //helper
@@ -396,36 +398,32 @@ void OLED_SSD1306::setRegister(const uint8_t reg,uint8_t val){
 /********************************** low level pin interface */
 #ifdef __AVR__
 
-	inline void OLED_SSD1306::writebegin()
-	{
-	}
-
 	inline void OLED_SSD1306::spiwrite(uint8_t c){
 		SPDR = c;
 		while(!(SPSR & _BV(SPIF)));
 	}
 
 	void OLED_SSD1306::writeCommand(uint8_t c){
-		*rsport &= ~rspinmask;
-		*csport &= ~cspinmask;
+		*rsport &= ~rspinmask;//LOW
+		*csport &= ~cspinmask;//LOW
 		spiwrite(c);
-		*csport |= cspinmask;
+		*csport |= cspinmask;//HI
 	}
 
 	void OLED_SSD1306::writeCommands(uint8_t *cmd, uint8_t length){
-		*rsport &= ~rspinmask;
-		*csport &= ~cspinmask;
+		*rsport &= ~rspinmask;//LOW
+		*csport &= ~cspinmask;//LOW
 		for (uint8_t i = 0; i < length; i++) {
 			spiwrite(*cmd++);
 		}
-		*csport |= cspinmask;
+		*csport |= cspinmask;//HI
 	}
 	
 	void OLED_SSD1306::writeData(uint8_t c){
-		*rsport |=  rspinmask;
-		*csport &= ~cspinmask;
+		*rsport |=  rspinmask;//HI
+		*csport &= ~cspinmask;//LOW
 		spiwrite(c);
-		*csport |= cspinmask;
+		*csport |= cspinmask;//HI
 	} 
 
 	void OLED_SSD1306::setBitrate(uint32_t n){
@@ -441,35 +439,31 @@ void OLED_SSD1306::setRegister(const uint8_t reg,uint8_t val){
 	}
 #elif defined(__SAM3X8E__)
 
-	inline void OLED_SSD1306::writebegin()
-	{
-	}
-	
 	inline void OLED_SSD1306::spiwrite(uint8_t c){
 		SPI.transfer(c);
 	}
 	
 	void OLED_SSD1306::writeCommand(uint8_t c){
-		rsport->PIO_CODR |=  rspinmask;
-		csport->PIO_CODR  |=  cspinmask;
+		rsport->PIO_CODR |=  rspinmask;//LOW
+		csport->PIO_CODR  |=  cspinmask;//LOW
 		spiwrite(c);
-		csport->PIO_SODR  |=  cspinmask;
+		csport->PIO_SODR  |=  cspinmask;//HI
 	}
 	
 	void OLED_SSD1306::writeCommands(uint8_t *cmd, uint8_t length){
-		rsport->PIO_CODR |=  rspinmask;
-		csport->PIO_CODR  |=  cspinmask;
+		rsport->PIO_CODR |=  rspinmask;//LOW
+		csport->PIO_CODR  |=  cspinmask;//LOW
 		for (uint8_t i = 0; i < length; i++) {
 			spiwrite(*cmd++);
 		}
-		csport->PIO_SODR  |=  cspinmask;
+		csport->PIO_SODR  |=  cspinmask;//HI
 	}
 	
 	void OLED_SSD1306::writeData(uint8_t c){
-		rsport->PIO_SODR |=  rspinmask;
-		csport->PIO_CODR  |=  cspinmask;
+		rsport->PIO_SODR |=  rspinmask;//HI
+		csport->PIO_CODR  |=  cspinmask;//LOW
 		spiwrite(c);
-		csport->PIO_SODR  |=  cspinmask;
+		csport->PIO_SODR  |=  cspinmask;//HI
 	} 
 	
 	
@@ -482,19 +476,7 @@ void OLED_SSD1306::setRegister(const uint8_t reg,uint8_t val){
 		SPI.setClockDivider(divider);
 	}
 #elif defined(__MK20DX128__) || defined(__MK20DX256__)
-	
-	inline void OLED_SSD1306::writebegin()
-	{
-	}
-	
-	inline void OLED_SSD1306::spiwrite(uint8_t c){
-		for (uint8_t bit = 0x80; bit; bit >>= 1) {
-			*datapin = ((c & bit) ? 1 : 0);
-			*clkpin = 1;
-			*clkpin = 0;
-		}
-	}
-	
+
 	void OLED_SSD1306::writeCommand(uint8_t c){
 		SPI0.PUSHR = c | (pcs_command << 16) | SPI_PUSHR_CTAS(0);
 		while (((SPI0.SR) & (15 << 12)) > (3 << 12)) ; // wait if FIFO full
@@ -580,20 +562,20 @@ void OLED_SSD1306::display(void) {
 	writeCommands(cmd, 3);
     // SPI
 	#ifdef __AVR__
-		*csport |= cspinmask;
-		*rsport |= rspinmask;
-		*csport &= ~cspinmask;
+		*csport |= cspinmask;//H
+		*rsport |= rspinmask;//H
+		*csport &= ~cspinmask;//L
 		for (uint16_t i=0; i<(OLED_WIDTH*OLED_HEIGHT/8); i++) {
 			spiwrite(buffer[i]);
 		}
-		*csport |= cspinmask;
+		*csport |= cspinmask;//H
 	#elif defined(__SAM3X8E__)
-		rsport->PIO_CODR |=  rspinmask;
-		csport->PIO_CODR  |=  cspinmask;
+		rsport->PIO_CODR |=  rspinmask;//H
+		csport->PIO_CODR  |=  cspinmask;//H
 		for (uint16_t i=0; i<(OLED_WIDTH*OLED_HEIGHT/8); i++) {
 			spiwrite(buffer[i]);
 		}
-		csport->PIO_SODR  |=  cspinmask;
+		csport->PIO_SODR  |=  cspinmask;//L
 	#elif defined(__MK20DX128__) || defined(__MK20DX256__)		
 		for (uint16_t i=0; i<(OLED_WIDTH*OLED_HEIGHT/8); i++) {
 			SPI0.PUSHR = buffer[i] | (pcs_data << 16) | SPI_PUSHR_CTAS(0);
@@ -624,6 +606,7 @@ void OLED_SSD1306::commonInit(){
     SPI.setBitOrder(MSBFIRST);
     SPI.setDataMode(SPI_MODE0);
 	*csport &= ~cspinmask;
+	_inited = true;
 #elif defined(__SAM3X8E__) 
 	pinMode(_rs, OUTPUT);
 	pinMode(_cs, OUTPUT);
@@ -638,9 +621,10 @@ void OLED_SSD1306::commonInit(){
     SPI.setDataMode(SPI_MODE0);
 	// toggle RST low to reset; CS low so it'll listen to us
 	csport ->PIO_CODR  |=  cspinmask; // Set control bits to LOW (idle)
+	_inited = true;
 #elif defined(__MK20DX128__) || defined(__MK20DX256__)
-	if (_sid == 0) _sid = 11;
-	if (_sclk == 0) _sclk = 13;
+	_sid = 11;
+	_sclk = 13;
 	if (spi_pin_is_cs(_cs) && spi_pin_is_cs(_rs)
 	 && (_sid == 7 || _sid == 11) && (_sclk == 13 || _sclk == 14)
 	 && !(_cs ==  2 && _rs == 10) && !(_rs ==  2 && _cs == 10)
@@ -670,6 +654,8 @@ void OLED_SSD1306::commonInit(){
 		SPI0.CTAR1 = ctar | SPI_CTAR_FMSZ(15);
 		SPI0.MCR = SPI_MCR_MSTR | SPI_MCR_PCSIS(0x1F) | SPI_MCR_CLR_TXF | SPI_MCR_CLR_RXF;
 		_inited = true;
+	} else {
+		_inited = false;
 	}
 #endif
 	if (_rst && _inited) {
