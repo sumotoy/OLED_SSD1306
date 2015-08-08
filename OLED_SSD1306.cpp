@@ -478,20 +478,20 @@ void OLED_SSD1306::setRegister(const uint8_t reg,uint8_t val){
 #elif defined(__MK20DX128__) || defined(__MK20DX256__)
 
 	void OLED_SSD1306::writeCommand(uint8_t c){
-		SPI0.PUSHR = c | (pcs_command << 16) | SPI_PUSHR_CTAS(0);
-		while (((SPI0.SR) & (15 << 12)) > (3 << 12)) ; // wait if FIFO full
+		KINETISK_SPI0.PUSHR = c | (pcs_command << 16) | SPI_PUSHR_CTAS(0);
+		while (((KINETISK_SPI0.SR) & (15 << 12)) > (3 << 12)) ; // wait if FIFO full
 	}
 
 	void OLED_SSD1306::writeCommands(uint8_t *cmd, uint8_t length){
 		for (uint8_t i = 0; i < length; i++) {
-			SPI0.PUSHR = *cmd++ | (pcs_command << 16) | SPI_PUSHR_CTAS(0);
-			while (((SPI0.SR) & (15 << 12)) > (3 << 12)) ; // wait if FIFO full
+			KINETISK_SPI0.PUSHR = *cmd++ | (pcs_command << 16) | SPI_PUSHR_CTAS(0);
+			while (((KINETISK_SPI0.SR) & (15 << 12)) > (3 << 12)) ; // wait if FIFO full
 		}
 	}
 	
 	void OLED_SSD1306::writeData(uint8_t c){
-		SPI0.PUSHR = c | (pcs_data << 16) | SPI_PUSHR_CTAS(0);
-		while (((SPI0.SR) & (15 << 12)) > (3 << 12)) ; // wait if FIFO full
+		KINETISK_SPI0.PUSHR = c | (pcs_data << 16) | SPI_PUSHR_CTAS(0);
+		while (((KINETISK_SPI0.SR) & (15 << 12)) > (3 << 12)) ; // wait if FIFO full
 	}
 
 	/*
@@ -543,10 +543,10 @@ void OLED_SSD1306::setRegister(const uint8_t reg,uint8_t val){
 			ctar = CTAR_4MHz;
 		}
 		SIM_SCGC6 |= SIM_SCGC6_SPI0;
-		SPI0.MCR = SPI_MCR_MDIS | SPI_MCR_HALT;
-		SPI0.CTAR0 = ctar | SPI_CTAR_FMSZ(7);
-		SPI0.CTAR1 = ctar | SPI_CTAR_FMSZ(15);
-		SPI0.MCR = SPI_MCR_MSTR | SPI_MCR_PCSIS(0x1F) | SPI_MCR_CLR_TXF | SPI_MCR_CLR_RXF;
+		KINETISK_SPI0.MCR = SPI_MCR_MDIS | SPI_MCR_HALT;
+		KINETISK_SPI0.CTAR0 = ctar | SPI_CTAR_FMSZ(7);
+		KINETISK_SPI0.CTAR1 = ctar | SPI_CTAR_FMSZ(15);
+		KINETISK_SPI0.MCR = SPI_MCR_MSTR | SPI_MCR_PCSIS(0x1F) | SPI_MCR_CLR_TXF | SPI_MCR_CLR_RXF;
 	}
 #endif
 
@@ -578,8 +578,8 @@ void OLED_SSD1306::display(void) {
 		csport->PIO_SODR  |=  cspinmask;//L
 	#elif defined(__MK20DX128__) || defined(__MK20DX256__)		
 		for (uint16_t i=0; i<(OLED_WIDTH*OLED_HEIGHT/8); i++) {
-			SPI0.PUSHR = buffer[i] | (pcs_data << 16) | SPI_PUSHR_CTAS(0);
-			while (((SPI0.SR) & (15 << 12)) > (3 << 12)) ; // wait if FIFO full
+			KINETISK_SPI0.PUSHR = buffer[i] | (pcs_data << 16) | SPI_PUSHR_CTAS(0);
+			while (((KINETISK_SPI0.SR) & (15 << 12)) > (3 << 12)) ; // wait if FIFO full
 		}
 	#endif
 }
@@ -649,10 +649,10 @@ void OLED_SSD1306::commonInit(){
 		pcs_data = spi_configure_cs_pin(_cs);
 		pcs_command = pcs_data | spi_configure_cs_pin(_rs);
 		SIM_SCGC6 |= SIM_SCGC6_SPI0;
-		SPI0.MCR = SPI_MCR_MDIS | SPI_MCR_HALT;
-		SPI0.CTAR0 = ctar | SPI_CTAR_FMSZ(7);
-		SPI0.CTAR1 = ctar | SPI_CTAR_FMSZ(15);
-		SPI0.MCR = SPI_MCR_MSTR | SPI_MCR_PCSIS(0x1F) | SPI_MCR_CLR_TXF | SPI_MCR_CLR_RXF;
+		KINETISK_SPI0.MCR = SPI_MCR_MDIS | SPI_MCR_HALT;
+		KINETISK_SPI0.CTAR0 = ctar | SPI_CTAR_FMSZ(7);
+		KINETISK_SPI0.CTAR1 = ctar | SPI_CTAR_FMSZ(15);
+		KINETISK_SPI0.MCR = SPI_MCR_MSTR | SPI_MCR_PCSIS(0x1F) | SPI_MCR_CLR_TXF | SPI_MCR_CLR_RXF;
 		_inited = true;
 	} else {
 		_inited = false;

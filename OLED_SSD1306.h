@@ -170,7 +170,7 @@ class OLED_SSD1306 : public Adafruit_GFX {
 	void startscrolldiagright(uint8_t start, uint8_t stop);
 	void startscrolldiagleft(uint8_t start, uint8_t stop);
 	void stopscroll(void);
-	void dim(uint8_t contrast);
+	void dim(boolean dim);
 	void clearDisplay(void);
 	virtual void drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color);
 	virtual void drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color);
