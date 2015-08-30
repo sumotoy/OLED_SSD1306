@@ -24,3 +24,5 @@ Only limitations on Teensy3... DC and CS puns must follow this relationship:
 	 && !(_cs == 21 && _rs == 22) && !(_rs == 21 && _cs == 22))
 	 
 On example I used CS=10,DC=9 and works fine.
+
+Now compatible with Teensyduino 1.24
