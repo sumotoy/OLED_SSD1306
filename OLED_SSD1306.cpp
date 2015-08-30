@@ -258,35 +258,13 @@ void OLED_SSD1306::drawPixel(int16_t x, int16_t y, uint16_t color)
 			y = OLED_MH - y;
 			break;
 	}
-<<<<<<< HEAD
 	if (color == WHITE) {
 		buffer[x + (y / 8) * OLED_WIDTH] |= (1 << (y & 7));  
 	} else {
 		buffer[x + (y / 8) * OLED_WIDTH] &= ~(1 << (y & 7)); 
-=======
-#elif defined(__MK20DX128__) || defined(__MK20DX256__)
-
-	void OLED_SSD1306::writeCommand(uint8_t c){
-		KINETISK_SPI0.PUSHR = c | (pcs_command << 16) | SPI_PUSHR_CTAS(0);
-		while (((KINETISK_SPI0.SR) & (15 << 12)) > (3 << 12)) ; // wait if FIFO full
->>>>>>> origin/master
 	}
 }
 
-<<<<<<< HEAD
-=======
-	void OLED_SSD1306::writeCommands(uint8_t *cmd, uint8_t length){
-		for (uint8_t i = 0; i < length; i++) {
-			KINETISK_SPI0.PUSHR = *cmd++ | (pcs_command << 16) | SPI_PUSHR_CTAS(0);
-			while (((KINETISK_SPI0.SR) & (15 << 12)) > (3 << 12)) ; // wait if FIFO full
-		}
-	}
-	
-	void OLED_SSD1306::writeData(uint8_t c){
-		KINETISK_SPI0.PUSHR = c | (pcs_data << 16) | SPI_PUSHR_CTAS(0);
-		while (((KINETISK_SPI0.SR) & (15 << 12)) > (3 << 12)) ; // wait if FIFO full
-	}
->>>>>>> origin/master
 
 #if defined(__MK20DX128__) || defined(__MK20DX256__)
 	OLED_SSD1306::OLED_SSD1306(uint8_t cspin,uint8_t dcpin,uint8_t rstpin,uint8_t mosi,uint8_t sclk)
@@ -297,7 +275,6 @@ void OLED_SSD1306::drawPixel(int16_t x, int16_t y, uint16_t color)
 		_mosi = mosi;
 		_sclk = sclk;
 	}
-<<<<<<< HEAD
 #elif defined(__MKL26Z64__)
 	OLED_SSD1306::OLED_SSD1306(uint8_t cspin,uint8_t dcpin,uint8_t rstpin,uint8_t mosi,uint8_t sclk)
 	{
@@ -315,51 +292,6 @@ void OLED_SSD1306::drawPixel(int16_t x, int16_t y, uint16_t color)
 		_cs   = cspin;
 		_rs   = dcpin;
 		_rst  = rstpin;
-=======
-	
-	/*
-	Helper:
-	This function configure the correct pin
-	*/
-	static uint8_t spi_configure_cs_pin(uint8_t pin){
-		switch (pin) {
-			case 10: CORE_PIN10_CONFIG = PORT_PCR_MUX(2); return 0x01; // PTC4
-			case 2:  CORE_PIN2_CONFIG  = PORT_PCR_MUX(2); return 0x01; // PTD0
-			case 9:  CORE_PIN9_CONFIG  = PORT_PCR_MUX(2); return 0x02; // PTC3
-			case 6:  CORE_PIN6_CONFIG  = PORT_PCR_MUX(2); return 0x02; // PTD4
-			case 20: CORE_PIN20_CONFIG = PORT_PCR_MUX(2); return 0x04; // PTD5
-			case 23: CORE_PIN23_CONFIG = PORT_PCR_MUX(2); return 0x04; // PTC2
-			case 21: CORE_PIN21_CONFIG = PORT_PCR_MUX(2); return 0x08; // PTD6
-			case 22: CORE_PIN22_CONFIG = PORT_PCR_MUX(2); return 0x08; // PTC1
-			case 15: CORE_PIN15_CONFIG = PORT_PCR_MUX(2); return 0x10; // PTC0
-		}
-		return 0;
-	}
-
-	/*
-	Helper:
-	This function set the speed of the SPI interface
-	*/
-	void OLED_SSD1306::setBitrate(uint32_t n){
-		if (n >= 24000000) {
-			ctar = CTAR_24MHz;
-		} else if (n >= 16000000) {
-			ctar = CTAR_16MHz;
-		} else if (n >= 12000000) {
-			ctar = CTAR_12MHz;
-		} else if (n >= 8000000) {
-			ctar = CTAR_8MHz;
-		} else if (n >= 6000000) {
-			ctar = CTAR_6MHz;
-		} else {
-			ctar = CTAR_4MHz;
-		}
-		SIM_SCGC6 |= SIM_SCGC6_SPI0;
-		KINETISK_SPI0.MCR = SPI_MCR_MDIS | SPI_MCR_HALT;
-		KINETISK_SPI0.CTAR0 = ctar | SPI_CTAR_FMSZ(7);
-		KINETISK_SPI0.CTAR1 = ctar | SPI_CTAR_FMSZ(15);
-		KINETISK_SPI0.MCR = SPI_MCR_MSTR | SPI_MCR_PCSIS(0x1F) | SPI_MCR_CLR_TXF | SPI_MCR_CLR_RXF;
->>>>>>> origin/master
 	}
 #endif
 
@@ -397,7 +329,6 @@ void OLED_SSD1306::drawPixel(int16_t x, int16_t y, uint16_t color)
 		{
 
 		}
-<<<<<<< HEAD
 	#else
 		void OLED_SSD1306::setBitrate(uint32_t n){
 			if (n >= 8000000) {
@@ -409,13 +340,6 @@ void OLED_SSD1306::drawPixel(int16_t x, int16_t y, uint16_t color)
 			} else {
 				SPI.setClockDivider(SPI_CLOCK_DIV16);
 			}
-=======
-		csport->PIO_SODR  |=  cspinmask;//L
-	#elif defined(__MK20DX128__) || defined(__MK20DX256__)		
-		for (uint16_t i=0; i<(OLED_WIDTH*OLED_HEIGHT/8); i++) {
-			KINETISK_SPI0.PUSHR = buffer[i] | (pcs_data << 16) | SPI_PUSHR_CTAS(0);
-			while (((KINETISK_SPI0.SR) & (15 << 12)) > (3 << 12)) ; // wait if FIFO full
->>>>>>> origin/master
 		}
 	#endif
 #endif
@@ -484,46 +408,12 @@ void OLED_SSD1306::commonInit()
 	csport->PIO_SODR  |=  cspinmask;//HI
 	_DC_state = LOW;
 #elif defined(__MK20DX128__) || defined(__MK20DX256__)
-<<<<<<< HEAD
 	#if defined(SPI_HAS_TRANSACTION)
 		SSD1306_SPI = SPISettings(30000000, MSBFIRST, SPI_MODE0);
 	#endif
 	if ((_mosi == 11 || _mosi == 7) && (_sclk == 13 || _sclk == 14)) {
         SPI.setMOSI(_mosi);
         SPI.setSCK(_sclk);
-=======
-	_sid = 11;
-	_sclk = 13;
-	if (spi_pin_is_cs(_cs) && spi_pin_is_cs(_rs)
-	 && (_sid == 7 || _sid == 11) && (_sclk == 13 || _sclk == 14)
-	 && !(_cs ==  2 && _rs == 10) && !(_rs ==  2 && _cs == 10)
-	 && !(_cs ==  6 && _rs ==  9) && !(_rs ==  6 && _cs ==  9)
-	 && !(_cs == 20 && _rs == 23) && !(_rs == 20 && _cs == 23)
-	 && !(_cs == 21 && _rs == 22) && !(_rs == 21 && _cs == 22)) {
-		if (_sclk == 13) {
-			CORE_PIN13_CONFIG = PORT_PCR_MUX(2) | PORT_PCR_DSE;
-			SPCR.setSCK(13);
-		} else {
-			CORE_PIN14_CONFIG = PORT_PCR_MUX(2);
-			SPCR.setSCK(14);
-		}
-		if (_sid == 11) {
-			CORE_PIN11_CONFIG = PORT_PCR_MUX(2);
-			SPCR.setMOSI(11);
-		} else {
-			CORE_PIN7_CONFIG = PORT_PCR_MUX(2);
-			SPCR.setMOSI(7);
-		}
-		ctar = CTAR_12MHz;
-		pcs_data = spi_configure_cs_pin(_cs);
-		pcs_command = pcs_data | spi_configure_cs_pin(_rs);
-		SIM_SCGC6 |= SIM_SCGC6_SPI0;
-		KINETISK_SPI0.MCR = SPI_MCR_MDIS | SPI_MCR_HALT;
-		KINETISK_SPI0.CTAR0 = ctar | SPI_CTAR_FMSZ(7);
-		KINETISK_SPI0.CTAR1 = ctar | SPI_CTAR_FMSZ(15);
-		KINETISK_SPI0.MCR = SPI_MCR_MSTR | SPI_MCR_PCSIS(0x1F) | SPI_MCR_CLR_TXF | SPI_MCR_CLR_RXF;
-		_inited = true;
->>>>>>> origin/master
 	} else {
 		 bitSet(_initError,0);
 		 return;

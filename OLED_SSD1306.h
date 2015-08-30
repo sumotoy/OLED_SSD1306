@@ -106,7 +106,6 @@
 // the class
 class OLED_SSD1306 : public Print {
  public:
-<<<<<<< HEAD
 	#if defined(__MK20DX128__) || defined(__MK20DX256__)
 		OLED_SSD1306(uint8_t cspin,uint8_t dcpin,uint8_t rstpin=255,uint8_t mosi=11,uint8_t sclk=13);
 	#elif defined(__MKL26Z64__)
@@ -537,30 +536,6 @@ class OLED_SSD1306 : public Print {
 			writecommand_cont(y2);
 		}
 		
-=======
-	//4 or 5 wire configuration
-	OLED_SSD1306(uint8_t CS, uint8_t RS, uint8_t RST);
-	OLED_SSD1306(uint8_t CS, uint8_t RS);
-	void begin(uint8_t switchvcc = _CMD_SWITCHCAPVCC);
-	void invertDisplay(uint8_t i);
-	void startscrollright(uint8_t start, uint8_t stop);
-	void startscrollleft(uint8_t start, uint8_t stop);
-	void startscrolldiagright(uint8_t start, uint8_t stop);
-	void startscrolldiagleft(uint8_t start, uint8_t stop);
-	void stopscroll(void);
-	void dim(boolean dim);
-	void clearDisplay(void);
-	virtual void drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color);
-	virtual void drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color);
-	//following are hardware accellerated and will be used by Adafruit_GFX.
-	//please refere to Adafruit_GFX for more functions.
-	void drawPixel(int16_t x, int16_t y, uint16_t color);
-	void display();
-	//in case it's needed
-	void writeData(uint8_t data);
-	void setBitrate(uint32_t n);//speed for the SPI interface
-  
->>>>>>> origin/master
  private:
 	uint8_t			_vccstate;
 	uint8_t			_initError;
