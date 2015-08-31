@@ -1,33 +1,11 @@
-
-/*********************************************************************
- * This is an example for our Monochrome OLEDs based on SSD1306 drivers
- * 
- * Pick one up today in the adafruit shop!
- * ------> http://www.adafruit.com/category/63_98
- * 
- * This example is for a 128x64 size display using SPI to communicate
- * 4 or 5 pins are required to interface
- * 
- * Adafruit invests time and resources providing this open source code, 
- * please support Adafruit and open-source hardware by purchasing 
- * products from Adafruit!
- * 
- * Written by Limor Fried/Ladyada  for Adafruit Industries.  
- * BSD license, check license.txt for more information
- * All text above, and the splash screen must be included in any redistribution
- *********************************************************************/
-// Test variation for OLED_SSD1306 library
-
-
 #include <SPI.h>
-#include <Adafruit_GFX.h>
 #include <OLED_SSD1306.h>
 
 //Uncomment this block to use hardware SPI
-#define OLED_DC     9
+#define OLED_DC     21
 #define OLED_CS     10
-#define OLED_RESET  14
-OLED_SSD1306 display(OLED_CS, OLED_DC, OLED_RESET);
+#define OLED_RESET  6
+OLED_SSD1306 oled(OLED_CS, OLED_DC, OLED_RESET);
 
 
 #define NUMFLAKES 10
@@ -35,10 +13,10 @@ OLED_SSD1306 display(OLED_CS, OLED_DC, OLED_RESET);
 #define YPOS 1
 #define DELTAY 2
 
-#define LOGO16_GLCD_HEIGHT 16 
-#define LOGO16_GLCD_WIDTH  16 
+#define LOGO16_GLCD_HEIGHT 16
+#define LOGO16_GLCD_WIDTH  16
 static const unsigned char PROGMEM logo16_glcd_bmp[] =
-{ 
+{
   B00000000, B11000000,
   B00000001, B11000000,
   B00000001, B11000000,
@@ -54,144 +32,147 @@ static const unsigned char PROGMEM logo16_glcd_bmp[] =
   B00111111, B11110000,
   B01111100, B11110000,
   B01110000, B01110000,
-  B00000000, B00110000 };
+  B00000000, B00110000
+};
 
+boolean inited = false;
 
-
-void setup()   {                
-
-  display.begin();
-  display.setBitrate(24000000);
-  // init done
-
-  display.display(); // show splashscreen
-  delay(2000);
-  display.clearDisplay();   // clears the screen and buffer
-
-  // draw a single pixel
-  display.drawPixel(10, 10, WHITE);
-  display.display();
-  delay(2000);
-  display.clearDisplay();
-
-  // draw many lines
-  testdrawline();
-  display.display();
-  delay(2000);
-  display.clearDisplay();
-
-  // draw rectangles
-  testdrawrect();
-  display.display();
-  delay(2000);
-  display.clearDisplay();
-
-  // draw multiple rectangles
-  testfillrect();
-  display.display();
-  delay(2000);
-  display.clearDisplay();
-
-  // draw mulitple circles
-  testdrawcircle();
-  display.display();
-  delay(2000);
-  display.clearDisplay();
-
-  // draw a white circle, 10 pixel radius
-  display.fillCircle(display.width()/2, display.height()/2, 10, WHITE);
-  display.display();
-  delay(2000);
-  display.clearDisplay();
-
-  testdrawroundrect();
-  delay(2000);
-  display.clearDisplay();
-
-  testfillroundrect();
-  delay(2000);
-  display.clearDisplay();
-
-  testdrawtriangle();
-  delay(2000);
-  display.clearDisplay();
-
-  testfilltriangle();
-  delay(2000);
-  display.clearDisplay();
-
-  // draw the first ~12 characters in the font
-  testdrawchar();
-  display.display();
-  delay(2000);
-  display.clearDisplay();
-
-  // draw scrolling text
-  testscrolltext();
-  delay(2000);
-  display.clearDisplay();
-
-  // text display tests
-  display.setTextSize(1);
-  display.setTextColor(WHITE);
-  display.setCursor(0,0);
-  display.println("Hello, world!");
-  display.setTextColor(BLACK, WHITE); // 'inverted' text
-  display.println(3.141592);
-  display.setTextSize(2);
-  display.setTextColor(WHITE);
-  display.print("0x"); 
-  display.println(0xDEADBEEF, HEX);
-  display.display();
-  delay(2000);
-
-  // miniature bitmap display
-  display.clearDisplay();
-  display.drawBitmap(30, 16,  logo16_glcd_bmp, 16, 16, 1);
-  display.display();
-
-  // invert the display
-  display.invertDisplay(true);
-  delay(1000); 
-  display.invertDisplay(false);
-  delay(1000); 
-
-  // draw a bitmap icon and 'animate' movement
-  testdrawbitmap(logo16_glcd_bmp, LOGO16_GLCD_HEIGHT, LOGO16_GLCD_WIDTH);
+void setup()   {
+  Serial.begin(38400);
+  long unsigned debug_start = millis ();
+  while (!Serial && ((millis () - debug_start) <= 5000)) ;
+  Serial.println("start");
+  //delay(1000);
+  oled.begin();
+  if (oled.getError() != 0) {
+    Serial.println(oled.getError());
+  } else {
+    inited = true;
+    Serial.println("Benchmarks\n");
+  }
 }
 
+/*
+testdrawline1:            25418 ms  ->  23055 ms
+testdrawline2:            25422 ms  ->  23055 ms
+testdrawline3:            25419 ms  ->  23061 ms
+testdrawline4:            25508 ms  ->  23127 ms
+testdrawrect:             7538 ms   ->  6895 ms
+testfillrect:             6887 ms   ->  6626 ms
+testdrawcircle:           20808 ms  ->  17671 ms
+fillCircle:               514 ms    ->  479 ms
+testdrawroundrect:        9216 ms   ->  8147 ms
+testfillroundrect:        10104 ms  ->  9787 ms
+testdrawtriangle:         3627 ms   ->  3340 ms
+testfilltriangle:         3960 ms   ->  3426 ms
+testdrawchar:             5333 ms   ->  3383 ms
+testText:                 2176 ms   ->  1481 ms
+*/
 
+
+uint8_t rot = 0;
 void loop() {
-
+  if (inited) {
+    oled.setRotation(rot);
+    testPixel(500);
+    testdrawline(250);
+    testdrawrect(500);
+    testfillrect(500);
+    testdrawcircle(500);
+    testCircle(500);
+    testdrawroundrect(500);
+    testfillroundrect(500);
+    testdrawtriangle(500);
+    testfilltriangle(500);
+    testdrawchar(500);
+    testscrolltext(1000);
+    testText(500);
+    bitMapTest(500);
+    testdrawbitmap(logo16_glcd_bmp, LOGO16_GLCD_HEIGHT, LOGO16_GLCD_WIDTH);
+    
+    if (rot >= 3){
+      rot = 0;
+    } else {
+      rot++;
+    }
+  }
 }
 
+void testPixel(int dly) {
+  oled.clearDisplay();   // clears the screen and buffer
+  oled.drawPixel(oled.width() / 2, oled.height() / 2, WHITE);
+  oled.display();
+  delay(dly);
+}
+
+void testCircle(int dly) {
+  oled.clearDisplay();
+  unsigned long start = micros();
+  oled.fillCircle(oled.width() / 2, oled.height() / 2, 10, WHITE);
+  oled.display();
+  Serial.print("fillCircle: ");
+  Serial.print(micros() - start);
+  Serial.print(" ms\n");
+  delay(dly);
+}
+void testText(int dly) {
+  oled.clearDisplay();
+  unsigned long start = micros();
+  oled.setTextSize(1);
+  oled.setTextColor(WHITE);
+  oled.setCursor(0, 0);
+  oled.println("Hello, world!");
+  oled.setTextColor(BLACK, WHITE); // 'inverted' text
+  oled.println(3.141592);
+  oled.setTextSize(2);
+  oled.setTextColor(WHITE);
+  oled.print("0x");
+  oled.println(0xDEADBEEF, HEX);
+  oled.display();
+  Serial.print("testText: ");
+  Serial.print(micros() - start);
+  Serial.print(" ms\n");
+  delay(dly);
+}
+
+void bitMapTest(int dly) {
+  oled.clearDisplay();
+  oled.drawBitmap(30, 16,  logo16_glcd_bmp, 16, 16, 1);
+  oled.display();
+  // invert the display
+  oled.invertDisplay(true);
+  delay(dly);
+  oled.invertDisplay(false);
+  delay(dly);
+}
 
 void testdrawbitmap(const uint8_t *bitmap, uint8_t w, uint8_t h) {
+  oled.clearDisplay();
   uint8_t icons[NUMFLAKES][3];
-
+  uint8_t f;
   // initialize
-  for (uint8_t f=0; f< NUMFLAKES; f++) {
-    icons[f][XPOS] = random(display.width());
+  for (f = 0; f < NUMFLAKES; f++) {
+    icons[f][XPOS] = random(oled.width());
     icons[f][YPOS] = 0;
     icons[f][DELTAY] = random(5) + 1;
   }
 
-  while (1) {
+  for (int i = 0; i < 1000; i++) {
     // draw each icon
-    for (uint8_t f=0; f< NUMFLAKES; f++) {
-      display.drawBitmap(icons[f][XPOS], icons[f][YPOS], logo16_glcd_bmp, w, h, WHITE);
+    for (f = 0; f < NUMFLAKES; f++) {
+      oled.drawBitmap(icons[f][XPOS], icons[f][YPOS], logo16_glcd_bmp, w, h, WHITE);
     }
-    display.display();
+    oled.display();
     //delay(5);
 
     // then erase it + move it
-    for (uint8_t f=0; f< NUMFLAKES; f++) {
-      display.drawBitmap(icons[f][XPOS], icons[f][YPOS],  logo16_glcd_bmp, w, h, BLACK);
+    for (f = 0; f < NUMFLAKES; f++) {
+      oled.drawBitmap(icons[f][XPOS], icons[f][YPOS],  logo16_glcd_bmp, w, h, BLACK);
       // move it
       icons[f][YPOS] += icons[f][DELTAY];
       // if its gone, reinit
-      if (icons[f][YPOS] > display.height()) {
-        icons[f][XPOS] = random(display.width());
+      if (icons[f][YPOS] > oled.height()) {
+        icons[f][XPOS] = random(oled.width());
         icons[f][YPOS] = 0;
         icons[f][DELTAY] = random(5) + 1;
       }
@@ -200,146 +181,221 @@ void testdrawbitmap(const uint8_t *bitmap, uint8_t w, uint8_t h) {
 }
 
 
-void testdrawchar(void) {
-  display.setTextSize(1);
-  display.setTextColor(WHITE);
-  display.setCursor(0,0);
+void testdrawchar(int dly) {
+  oled.clearDisplay();
+  uint8_t i;
+  unsigned long start = micros();
+  oled.setTextSize(1);
+  oled.setTextColor(WHITE);
+  oled.setCursor(0, 0);
 
-  for (uint8_t i=0; i < 168; i++) {
+  for (i = 0; i < 168; i++) {
     if (i == '\n') continue;
-    display.write(i);
+    oled.write(i);
     if ((i > 0) && (i % 21 == 0))
-      display.println();
-  }    
-  display.display();
-}
-
-void testdrawcircle(void) {
-  for (int16_t i=0; i<display.height(); i+=2) {
-    display.drawCircle(display.width()/2, display.height()/2, i, WHITE);
-    display.display();
+      oled.println();
   }
+  oled.display();
+  Serial.print("testdrawchar: ");
+  Serial.print(micros() - start);
+  Serial.print(" ms\n");
+  delay(dly);
 }
 
-void testfillrect(void) {
-  uint8_t color = 1;
-  for (int16_t i=0; i<display.height()/2; i+=3) {
+void testdrawcircle(int dly) {
+  oled.clearDisplay();
+  uint16_t i;
+  unsigned long start = micros();
+  for (i = 0; i < oled.height(); i += 2) {
+    oled.drawCircle(oled.width() / 2, oled.height() / 2, i, WHITE);
+    oled.display();
+  }
+  Serial.print("testdrawcircle: ");
+  Serial.print(micros() - start);
+  Serial.print(" ms\n");
+  delay(dly);
+}
+
+void testfillrect(int dly) {
+  oled.clearDisplay();
+  uint16_t color = WHITE;
+  int16_t i;
+  unsigned long start = micros();
+  for (i = 0; i < oled.height() / 2; i += 3) {
     // alternate colors
-    display.fillRect(i, i, display.width()-i*2, display.height()-i*2, color%2);
-    display.display();
+    oled.fillRect(i, i, oled.width() - i * 2, oled.height() - i * 2, color % 2);
+    oled.display();
     color++;
   }
+  Serial.print("testfillrect: ");
+  Serial.print(micros() - start);
+  Serial.print(" ms\n");
+  delay(dly);
 }
 
-void testdrawtriangle(void) {
-  for (int16_t i=0; i<min(display.width(),display.height())/2; i+=5) {
-    display.drawTriangle(display.width()/2, display.height()/2-i,
-    display.width()/2-i, display.height()/2+i,
-    display.width()/2+i, display.height()/2+i, WHITE);
-    display.display();
+void testdrawtriangle(int dly) {
+  oled.clearDisplay();
+  int16_t i;
+  unsigned long start = micros();
+  for (i = 0; i < min(oled.width(), oled.height()) / 2; i += 5) {
+    oled.drawTriangle(oled.width() / 2, oled.height() / 2 - i,
+                      oled.width() / 2 - i, oled.height() / 2 + i,
+                      oled.width() / 2 + i, oled.height() / 2 + i, WHITE);
+    oled.display();
   }
+  Serial.print("testdrawtriangle: ");
+  Serial.print(micros() - start);
+  Serial.print(" ms\n");
+  delay(dly);
 }
 
-void testfilltriangle(void) {
-  uint8_t color = WHITE;
-  for (int16_t i=min(display.width(),display.height())/2; i>0; i-=5) {
-    display.fillTriangle(display.width()/2, display.height()/2-i,
-    display.width()/2-i, display.height()/2+i,
-    display.width()/2+i, display.height()/2+i, WHITE);
+void testfilltriangle(int dly) {
+  oled.clearDisplay();
+  uint16_t color = WHITE;
+  int16_t i;
+  unsigned long start = micros();
+  for (i = min(oled.width(), oled.height()) / 2; i > 0; i -= 5) {
+    oled.fillTriangle(oled.width() / 2, oled.height() / 2 - i,
+                      oled.width() / 2 - i, oled.height() / 2 + i,
+                      oled.width() / 2 + i, oled.height() / 2 + i, color);
     if (color == WHITE) color = BLACK;
     else color = WHITE;
-    display.display();
+    oled.display();
   }
+  Serial.print("testfilltriangle: ");
+  Serial.print(micros() - start);
+  Serial.print(" ms\n");
+  delay(dly);
 }
 
-void testdrawroundrect(void) {
-  for (int16_t i=0; i<display.height()/2-2; i+=2) {
-    display.drawRoundRect(i, i, display.width()-2*i, display.height()-2*i, display.height()/4, WHITE);
-    display.display();
+void testdrawroundrect(int dly) {
+  oled.clearDisplay();
+  unsigned long start = micros();
+  int16_t i;
+  for (i = 0; i < oled.height() / 2 - 2; i += 2) {
+    oled.drawRoundRect(i, i, oled.width() - 2 * i, oled.height() - 2 * i, oled.height() / 4, WHITE);
+    oled.display();
   }
+  Serial.print("testdrawroundrect: ");
+  Serial.print(micros() - start);
+  Serial.print(" ms\n");
+  delay(dly);
 }
 
-void testfillroundrect(void) {
-  uint8_t color = WHITE;
-  for (int16_t i=0; i<display.height()/2-2; i+=2) {
-    display.fillRoundRect(i, i, display.width()-2*i, display.height()-2*i, display.height()/4, color);
+void testfillroundrect(int dly) {
+  oled.clearDisplay();
+  uint16_t color = WHITE;
+  int16_t i;
+  unsigned long start = micros();
+  for (i = 0; i < oled.height() / 2 - 2; i += 2) {
+    oled.fillRoundRect(i, i, oled.width() - 2 * i, oled.height() - 2 * i, oled.height() / 4, color);
     if (color == WHITE) color = BLACK;
     else color = WHITE;
-    display.display();
+    oled.display();
   }
+  Serial.print("testfillroundrect: ");
+  Serial.print(micros() - start);
+  Serial.print(" ms\n");
+  delay(dly);
 }
 
-void testdrawrect(void) {
-  for (int16_t i=0; i<display.height()/2; i+=2) {
-    display.drawRect(i, i, display.width()-2*i, display.height()-2*i, WHITE);
-    display.display();
+void testdrawrect(int dly) {
+  oled.clearDisplay();
+  unsigned long start = micros();
+  int16_t i;
+  for (i = 0; i < oled.height() / 2; i += 2) {
+    oled.drawRect(i, i, oled.width() - 2 * i, oled.height() - 2 * i, WHITE);
+    oled.display();
   }
+  Serial.print("testdrawrect: ");
+  Serial.print(micros() - start);
+  Serial.print(" ms\n");
+  delay(dly);
 }
 
-void testdrawline() {  
-  for (int16_t i=0; i<display.width(); i+=4) {
-    display.drawLine(0, 0, i, display.height()-1, WHITE);
-    display.display();
+void testdrawline(int dly) {
+  oled.clearDisplay();
+  int16_t i;
+  unsigned long start = micros();
+  for (i = 0; i < oled.width(); i += 4) {
+    oled.drawLine(0, 0, i, oled.height() - 1, WHITE);
+    oled.display();
   }
-  for (int16_t i=0; i<display.height(); i+=4) {
-    display.drawLine(0, 0, display.width()-1, i, WHITE);
-    display.display();
+  for (i = 0; i < oled.height(); i += 4) {
+    oled.drawLine(0, 0, oled.width() - 1, i, WHITE);
+    oled.display();
   }
-  delay(250);
+  Serial.print("testdrawline1: ");
+  Serial.print(micros() - start);
+  Serial.print(" ms\n");
+  delay(dly);
 
-  display.clearDisplay();
-  for (int16_t i=0; i<display.width(); i+=4) {
-    display.drawLine(0, display.height()-1, i, 0, WHITE);
-    display.display();
+  oled.clearDisplay();
+  start = micros();
+  for (i = 0; i < oled.width(); i += 4) {
+    oled.drawLine(0, oled.height() - 1, i, 0, WHITE);
+    oled.display();
   }
-  for (int16_t i=display.height()-1; i>=0; i-=4) {
-    display.drawLine(0, display.height()-1, display.width()-1, i, WHITE);
-    display.display();
+  for (i = oled.height() - 1; i >= 0; i -= 4) {
+    oled.drawLine(0, oled.height() - 1, oled.width() - 1, i, WHITE);
+    oled.display();
   }
-  delay(250);
+  Serial.print("testdrawline2: ");
+  Serial.print(micros() - start);
+  Serial.print(" ms\n");
+  delay(dly);
 
-  display.clearDisplay();
-  for (int16_t i=display.width()-1; i>=0; i-=4) {
-    display.drawLine(display.width()-1, display.height()-1, i, 0, WHITE);
-    display.display();
+  oled.clearDisplay();
+  start = micros();
+  for (i = oled.width() - 1; i >= 0; i -= 4) {
+    oled.drawLine(oled.width() - 1, oled.height() - 1, i, 0, WHITE);
+    oled.display();
   }
-  for (int16_t i=display.height()-1; i>=0; i-=4) {
-    display.drawLine(display.width()-1, display.height()-1, 0, i, WHITE);
-    display.display();
+  for (i = oled.height() - 1; i >= 0; i -= 4) {
+    oled.drawLine(oled.width() - 1, oled.height() - 1, 0, i, WHITE);
+    oled.display();
   }
-  delay(250);
+  Serial.print("testdrawline3: ");
+  Serial.print(micros() - start);
+  Serial.print(" ms\n");
+  delay(dly);
 
-  display.clearDisplay();
-  for (int16_t i=0; i<display.height(); i+=4) {
-    display.drawLine(display.width()-1, 0, 0, i, WHITE);
-    display.display();
+  oled.clearDisplay();
+  start = micros();
+  for (i = 0; i < oled.height(); i += 4) {
+    oled.drawLine(oled.width() - 1, 0, 0, i, WHITE);
+    oled.display();
   }
-  for (int16_t i=0; i<display.width(); i+=4) {
-    display.drawLine(display.width()-1, 0, i, display.height()-1, WHITE); 
-    display.display();
+  for (i = 0; i < oled.width(); i += 4) {
+    oled.drawLine(oled.width() - 1, 0, i, oled.height() - 1, WHITE);
+    oled.display();
   }
-  delay(250);
+  Serial.print("testdrawline4: ");
+  Serial.print(micros() - start);
+  Serial.print(" ms\n");
+  delay(dly);
 }
 
-void testscrolltext(void) {
-  display.setTextSize(2);
-  display.setTextColor(WHITE);
-  display.setCursor(10,0);
-  display.clearDisplay();
-  display.println("scroll");
-  display.display();
+void testscrolltext(int dly) {
+  oled.display();
+  oled.setTextSize(2);
+  oled.setTextColor(WHITE);
+  oled.setCursor(10, 0);
+  oled.clearDisplay();
+  oled.println("scroll");
+  oled.display();
 
-  display.startscrollright(0x00, 0x0F);
-  delay(2000);
-  display.stopscroll();
-  delay(1000);
-  display.startscrollleft(0x00, 0x0F);
-  delay(2000);
-  display.stopscroll();
-  delay(1000);    
-  display.startscrolldiagright(0x00, 0x07);
-  delay(2000);
-  display.startscrolldiagleft(0x00, 0x07);
-  delay(2000);
-  display.stopscroll();
+  oled.startScroll(HR, 0x00, 0x0F);
+  delay(dly);
+  oled.stopScroll();
+  delay(dly);
+  oled.startScroll(HL, 0x00, 0x0F);
+  delay(dly);
+  oled.stopScroll();
+  delay(dly);
+  oled.startScroll(VR, 0x00, 0x07);
+  delay(dly);
+  oled.startScroll(VL, 0x00, 0x07);
+  delay(dly);
+  oled.stopScroll();
 }

@@ -99,7 +99,9 @@
 	
 #endif
 
-#include "font.h"
+//#include "fonts/font.h"
+#include "../commonFonts/commonFonts.h"
+
 
 #ifdef __cplusplus
 
@@ -153,7 +155,7 @@ class OLED_SSD1306 : public Print {
 	void 	drawMesh(int16_t x, int16_t y, int16_t w, int16_t h, uint8_t spacing,uint16_t color);
 	void 	display(void);
 	void 	setBitrate(uint32_t n);//speed for the SPI interface
-	void 	setFont(const OLEDSSD1306_font_t &f) { _font = &f; }
+	void 	setFont(const common_font_t &f) { _font = &f; }
 	void 	setFontInternal(void) { _font = NULL; }
 	void 	drawChar(int16_t x, int16_t y, unsigned char c, uint16_t color, uint16_t bg, uint8_t size);
 	void 	drawFontChar(unsigned int c);
@@ -167,7 +169,7 @@ class OLED_SSD1306 : public Print {
 							_rotation;
 	uint16_t 				_textcolor, _textbgcolor;						
 	boolean 				_wrap;
-	const OLEDSSD1306_font_t *_font;
+	const common_font_t *_font;
 	
 	
 	#if defined(__MK20DX128__) || defined(__MK20DX256__)
